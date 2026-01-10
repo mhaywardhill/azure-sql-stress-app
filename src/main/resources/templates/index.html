@@ -65,14 +65,14 @@
             p99: <strong th:text="${result.p99Ms}"></strong> ms
         </p>
 
-        <div th:if="${result.errorSamples} != null and !${result.errorSamples}.isEmpty()">
+        <div th:if="${result.errorSamples != null and !result.errorSamples.isEmpty()}">
             <h3>Error samples</h3>
             <ul>
                 <li th:each="e : ${result.errorSamples}" th:text="${e}"></li>
             </ul>
         </div>
 
-        <div th:if="${result.sampleRows} != null and !${result.sampleRows}.isEmpty()">
+        <div th:if="${result.sampleRows != null and !result.sampleRows.isEmpty()}">
             <h3>Sample rows</h3>
             <table>
                 <tbody>
