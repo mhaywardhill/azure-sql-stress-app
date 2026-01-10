@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Azure SQL Stress App</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<body>
+<div class="container">
+    <h1>Azure SQL Stress App</h1>
+    <p class="muted">Run a SQL statement multiple times with configurable concurrency and capture timings.</p>
+    <form th:action="@{/run}" th:object="${request}" method="post">
+        <label>SQL statement</label>
+        <textarea th:field="*{sqlText}" rows="6" placeholder="e.g., SELECT COUNT(*) FROM sys.objects"></textarea>
+
+        <div class="grid">
+            <div>
+                <label>Iterations</label>
+                <input type="number" th:field="*{iterations}" min="1" />
+            </div>
+            <div>
+                <label>Concurrency</label>
+                <input type="number" th:field="*{concurrency}" min="1" />
+            </div>
+            <div>
+                <label>Delay (ms)</label>
+                <input type="number" th:field="*{delayMs}" min="0" />
+            </div>
+            <div>
+                <label>Timeout (s)</label>
+                <input type="number" th:field="*{timeoutSeconds}" min="1" />
+            </div>
+            <div>
+                <label>Result mode</label>
+                <select th:field="*{resultMode}">
+                    <option th:value="NONE">No rows</option>
+                    <option th:value="SCALAR">Scalar</option>
+                    <option th:value="ROWS">Rows</option>
+                </select>
+            </div>
+            <div>
+                <label>Max rows</label>
+                <input type="number" th:field="*{maxRows}" min="1" />
+            </div>
+        </div>
+
+        <button type="submit">Run</button>
+    </form>
+
+    <div th:if="${result}">
+        <h2>Results</h2>
+        <p>
+            Iterations: <strong th:text="${result.totalIterations}"></strong> ·
+            Concurrency: <strong th:text="${result.concurrency}"></strong> ·
+            Duration: <strong th:text="${result.durationMs}"></strong> ms
+        </p>
+        <p>
+            Success: <strong th:text="${result.successCount}"></strong> ·
+            Errors: <strong th:text="${result.errorCount}"></strong>
+        </p>
+        <p>
+            Avg: <strong th:text="${result.avgMs}"></strong> ms ·
+            p50: <strong th:text="${result.p50Ms}"></strong> ms ·
+            p95: <strong th:text="${result.p95Ms}"></strong> ms ·
+            p99: <strong th:text="${result.p99Ms}"></strong> ms
+        </p>
+
+        <div th:if="${result.errorSamples} != null and !${result.errorSamples}.isEmpty()">
+            <h3>Error samples</h3>
+            <ul>
+                <li th:each="e : ${result.errorSamples}" th:text="${e}"></li>
+            </ul>
+        </div>
+
+        <div th:if="${result.sampleRows} != null and !${result.sampleRows}.isEmpty()">
+            <h3>Sample rows</h3>
+            <table>
+                <tbody>
+                    <tr th:each="row : ${result.sampleRows}">
+                        <td th:each="cell : ${row}" th:text="${cell}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <p class="warning">⚠️ Only run against test databases you control. High load may incur costs or throttle resources.</p>
+</div>
+</body>
+</html>
