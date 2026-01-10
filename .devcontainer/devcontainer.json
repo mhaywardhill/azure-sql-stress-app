@@ -1,6 +1,13 @@
 {
   "name": "Azure SQL Stress App",
   "image": "mcr.microsoft.com/devcontainers/java:1-17-bullseye",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "17",
+      "installMaven": "true"
+    }
+  },
+  "postCreateCommand": "sudo apt update && sudo apt install -y maven",
   "forwardPorts": [
     8080
   ],
