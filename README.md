@@ -24,13 +24,13 @@ A lightweight Spring Boot web app to **stress test Azure SQL** by repeatedly exe
 2. **Open in Codespaces**: In your GitHub repo → **Code** → **Codespaces** → **Create codespace on main**.
 3. **Configure connection settings** using Codespaces **Secrets** or a local `.env` file.
    - Required environment variables:
-     - `DB_URL` – e.g. `jdbc:sqlserver://<server>.database.windows.net:1433;database=<db>;encrypt=true;loginTimeout=30;`
+     - `DB_URL` – e.g. `jdbc:sqlserver://<server>.database.windows.net:1433;database=<db>;encrypt=true;loginTimeout=30;applicationName=AzureSqlStressApp;`
      - `DB_USER` – username (for SQL Auth **or** Entra ID user UPN)
      - `DB_PASSWORD` – password
 
    **Entra ID (Microsoft Entra) password auth**: append `authentication=ActiveDirectoryPassword` to the JDBC URL, e.g.
    ```
-   jdbc:sqlserver://<server>.database.windows.net:1433;database=<db>;encrypt=true;loginTimeout=30;authentication=ActiveDirectoryPassword;
+   jdbc:sqlserver://<server>.database.windows.net:1433;database=<db>;encrypt=true;loginTimeout=30;applicationName=AzureSqlStressApp;authentication=ActiveDirectoryPassword;
    ```
    > Note: If a Conditional Access policy enforces MFA, password-based flows will be blocked.
 

@@ -9,6 +9,16 @@
 <div class="container">
     <h1>Azure SQL Stress App</h1>
     <p class="muted">Run a SQL statement multiple times with configurable concurrency and capture timings.</p>
+    
+    <div th:if="${serverName}" style="background: #f0f0f0; padding: 0.5rem 1rem; margin-bottom: 1rem; border-radius: 4px;">
+        <p style="margin: 0.25rem 0; font-size: 0.9rem;">
+            <strong>Server:</strong> <span th:text="${serverName}"></span>
+        </p>
+        <p style="margin: 0.25rem 0; font-size: 0.9rem;">
+            <strong>Database:</strong> <span th:text="${databaseName}"></span>
+        </p>
+    </div>
+    
     <form th:action="@{/run}" th:object="${request}" method="post">
         <label>SQL statement</label>
         <textarea th:field="*{sqlText}" rows="6" placeholder="e.g., SELECT COUNT(*) FROM sys.objects"></textarea>
@@ -51,8 +61,27 @@
         <button type="submit" class="secondary">Evict Idle Connections</button>
     </form>
 
+    <form th:action="@{/updatePool}" method="post" style="margin-top: 1rem;">
+        <h3>Connection Pool Settings</h3>
+        <div class="grid">
+            <div>
+                <label>Minimum Idle</label>
+                <input type="number" name="minIdle" th:value="${currentMinIdle}" min="0" />
+            </div>
+            <div>
+                <label>Maximum Pool Size</label>
+                <input type="number" name="maxPool" th:value="${currentMaxPool}" min="1" />
+            </div>
+        </div>
+        <button type="submit" class="secondary">Update Pool Settings</button>
+    </form>
+
     <div th:if="${evictMessage}" class="success-message">
         <p th:text="${evictMessage}"></p>
+    </div>
+
+    <div th:if="${poolMessage}" class="success-message">
+        <p th:text="${poolMessage}"></p>
     </div>
 
     <div th:if="${result}">

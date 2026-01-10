@@ -163,4 +163,24 @@ public class SqlRunnerService {
         }
         return "DataSource is not HikariCP, cannot evict connections";
     }
+
+    public String updatePoolSettings(Integer minIdle, Integer maxPool) {
+        if (dataSource instanceof HikariDataSource) {
+            HikariDataSource hikari = (HikariDataSource) dataSource;
+            StringBuilder message = new StringBuilder("Pool settings updated: ");
+            
+            if (minIdle != null && minIdle >= 0) {
+                hikari.setMinimumIdle(minIdle);
+                message.append("Min Idle=").append(minIdle).append(" ");
+            }
+            
+            if (maxPool != null && maxPool > 0) {
+                hikari.setMaximumPoolSize(maxPool);
+                message.append("Max Pool=").append(maxPool);
+            }
+            
+            return message.toString();
+        }
+        return "DataSource is not HikariCP, cannot update pool settings";
+    }
 }
