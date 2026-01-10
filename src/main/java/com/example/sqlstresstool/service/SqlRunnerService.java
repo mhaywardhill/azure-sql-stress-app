@@ -1,5 +1,6 @@
 package com.example.sqlstresstool.service;
 
+import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.time.Duration;
@@ -152,5 +153,14 @@ public class SqlRunnerService {
         if (sql == null) return false;
         String s = sql.trim().toLowerCase(Locale.ROOT);
         return s.startsWith("select") || s.startsWith("with ");
+    }
+
+    public String evictIdleConnections() {
+        if (dataSource instanceof HikariDataSource) {
+            HikariDataSource hikari = (HikariDataSource) dataSource;
+            hikari.getHikariPoolMXBean().softEvictConnections();
+            return "Idle connections evicted from pool '" + hikari.getPoolName() + "'";
+        }
+        return "DataSource is not HikariCP, cannot evict connections";
     }
 }

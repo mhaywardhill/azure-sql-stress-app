@@ -30,4 +30,12 @@ public class HomeController {
         model.addAttribute("result", result);
         return "index";
     }
+
+    @PostMapping("/evict")
+    public String evict(Model model) {
+        String message = sqlRunnerService.evictIdleConnections();
+        model.addAttribute("request", StressRequest.defaultRequest());
+        model.addAttribute("evictMessage", message);
+        return "index";
+    }
 }

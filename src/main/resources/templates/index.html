@@ -47,6 +47,14 @@
         <button type="submit">Run</button>
     </form>
 
+    <form th:action="@{/evict}" method="post" style="margin-top: 1rem;">
+        <button type="submit" class="secondary">Evict Idle Connections</button>
+    </form>
+
+    <div th:if="${evictMessage}" class="success-message">
+        <p th:text="${evictMessage}"></p>
+    </div>
+
     <div th:if="${result}">
         <h2>Results</h2>
         <p>
