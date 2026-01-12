@@ -164,7 +164,8 @@ public class SqlRunnerService {
         return "DataSource is not HikariCP, cannot evict connections";
     }
 
-    public String updatePoolSettings(Integer minIdle, Integer maxPool) {
+    public String updatePoolSettings(Integer minIdle, Integer maxPool, Long connectionTimeout,
+                                    Long idleTimeout, Long maxLifetime, Long keepaliveTime) {
         if (dataSource instanceof HikariDataSource) {
             HikariDataSource hikari = (HikariDataSource) dataSource;
             StringBuilder message = new StringBuilder("Pool settings updated: ");
@@ -176,7 +177,27 @@ public class SqlRunnerService {
             
             if (maxPool != null && maxPool > 0) {
                 hikari.setMaximumPoolSize(maxPool);
-                message.append("Max Pool=").append(maxPool);
+                message.append("Max Pool=").append(maxPool).append(" ");
+            }
+            
+            if (connectionTimeout != null && connectionTimeout >= 1000) {
+                hikari.setConnectionTimeout(connectionTimeout);
+                message.append("Conn Timeout=").append(connectionTimeout).append("ms ");
+            }
+            
+            if (idleTimeout != null && idleTimeout >= 0) {
+                hikari.setIdleTimeout(idleTimeout);
+                message.append("Idle Timeout=").append(idleTimeout).append("ms ");
+            }
+            
+            if (maxLifetime != null && maxLifetime >= 0) {
+                hikari.setMaxLifetime(maxLifetime);
+                message.append("Max Lifetime=").append(maxLifetime).append("ms ");
+            }
+            
+            if (keepaliveTime != null && keepaliveTime >= 0) {
+                hikari.setKeepaliveTime(keepaliveTime);
+                message.append("Keepalive=").append(keepaliveTime).append("ms");
             }
             
             return message.toString();

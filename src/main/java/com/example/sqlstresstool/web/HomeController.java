@@ -55,9 +55,14 @@ public class HomeController {
 
     @PostMapping("/updatePool")
     public String updatePool(@RequestParam(required = false) Integer minIdle, 
-                           @RequestParam(required = false) Integer maxPool, 
+                           @RequestParam(required = false) Integer maxPool,
+                           @RequestParam(required = false) Long connectionTimeout,
+                           @RequestParam(required = false) Long idleTimeout,
+                           @RequestParam(required = false) Long maxLifetime,
+                           @RequestParam(required = false) Long keepaliveTime,
                            Model model) {
-        String message = sqlRunnerService.updatePoolSettings(minIdle, maxPool);
+        String message = sqlRunnerService.updatePoolSettings(minIdle, maxPool, connectionTimeout, 
+                                                            idleTimeout, maxLifetime, keepaliveTime);
         model.addAttribute("request", StressRequest.defaultRequest());
         model.addAttribute("poolMessage", message);
         addConnectionInfo(model);
@@ -85,6 +90,10 @@ public class HomeController {
             model.addAttribute("username", hikari.getUsername());
             model.addAttribute("currentMinIdle", hikari.getMinimumIdle());
             model.addAttribute("currentMaxPool", hikari.getMaximumPoolSize());
+            model.addAttribute("currentConnectionTimeout", hikari.getConnectionTimeout());
+            model.addAttribute("currentIdleTimeout", hikari.getIdleTimeout());
+            model.addAttribute("currentMaxLifetime", hikari.getMaxLifetime());
+            model.addAttribute("currentKeepaliveTime", hikari.getKeepaliveTime());
             
             // Pool statistics
             try {

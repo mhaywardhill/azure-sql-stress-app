@@ -126,6 +126,30 @@
                 <input type="number" name="maxPool" th:value="${currentMaxPool}" min="1" />
             </div>
         </div>
+        
+        <h4 style="margin-top: 1rem; margin-bottom: 0.5rem;">Connection Management (ms)</h4>
+        <div class="grid">
+            <div>
+                <label>Connection Timeout</label>
+                <input type="number" name="connectionTimeout" th:value="${currentConnectionTimeout}" min="1000" step="1000" />
+                <small style="color: #666; font-size: 0.85rem;">Max wait for connection (default: 30000)</small>
+            </div>
+            <div>
+                <label>Idle Timeout</label>
+                <input type="number" name="idleTimeout" th:value="${currentIdleTimeout}" min="0" step="1000" />
+                <small style="color: #666; font-size: 0.85rem;">Max idle time (default: 600000, 0=disabled)</small>
+            </div>
+            <div>
+                <label>Max Lifetime</label>
+                <input type="number" name="maxLifetime" th:value="${currentMaxLifetime}" min="0" step="1000" />
+                <small style="color: #666; font-size: 0.85rem;">Max connection lifetime (default: 1800000, 0=unlimited)</small>
+            </div>
+            <div>
+                <label>Keepalive Time</label>
+                <input type="number" name="keepaliveTime" th:value="${currentKeepaliveTime}" min="0" step="1000" />
+                <small style="color: #666; font-size: 0.85rem;">Keepalive ping frequency (default: 0=disabled)</small>
+            </div>
+        </div>
         <button type="submit" class="secondary">Update Pool Settings</button>
     </form>
 
