@@ -51,5 +51,83 @@ A lightweight Spring Boot web app to **stress test Azure SQL** by repeatedly exe
 - Start small (e.g., 50 iterations, concurrency 5), then scale up.
 - Monitor in Azure (Query Store, Wait Stats, Perf Insights) during tests.
 
+## Troubleshooting Connection Issues
+
+### Connection Failed Errors
+
+If you see `total=0, active=0, idle=0` in the connection pool errors, the app cannot establish any database connections.
+
+**Common Issues:**
+
+1. **Missing Environment Variables**
+   ```bash
+   # Check if variables are set
+   echo $DB_URL
+   echo $DB_USER
+   # DB_PASSWORD should be set but don't echo it
+   
+   # Set them if missing
+   export DB_URL="jdbc:sqlserver://your-server.database.windows.net:1433;database=your-db;encrypt=true;authentication=ActiveDirectoryPassword"
+   export DB_USER="yourname@yourdomain.com"
+   export DB_PASSWORD="your-password"
+   ```
+
+2. **Azure SQL Firewall Rules**
+   ```bash
+   # Get your Codespaces IP
+   curl -s https://api.ipify.org
+   
+   # Add to Azure SQL firewall via Azure CLI
+   az sql server firewall-rule create \
+     --resource-group YOUR_RG \
+     --server YOUR_SERVER \
+     --name AllowCodespaces \
+     --start-ip-address YOUR_IP \
+     --end-ip-address YOUR_IP
+   
+   # Or enable "Allow Azure Services"
+   az sql server firewall-rule create \
+     --resource-group YOUR_RG \
+     --server YOUR_SERVER \
+     --name AllowAzureServices \
+     --start-ip-address 0.0.0.0 \
+     --end-ip-address 0.0.0.0
+   ```
+
+3. **Authentication Issues**
+   - **SQL Auth**: Use `DB_USER=sqluser` and omit `authentication=` from JDBC URL
+   - **Azure AD**: Use `DB_USER=name@domain.com` and add `authentication=ActiveDirectoryPassword` to JDBC URL
+   - **MFA Required**: Password auth won't work with MFA. Use service principal or managed identity instead.
+
+4. **Test Connectivity**
+   ```bash
+   # Test TCP connection to Azure SQL
+   nc -zv your-server.database.windows.net 1433
+   
+   # Or with telnet
+   telnet your-server.database.windows.net 1433
+   ```
+
+### Debug Logging
+
+The app now includes detailed debug logging. Check the console output when starting the app for:
+- HikariCP pool initialization messages
+- JDBC driver connection attempts
+- Detailed error messages with SQL State codes
+
+Look for lines like:
+```
+HikariPool-1 - Starting...
+HikariPool-1 - Exception during pool initialization
+Login failed for user 'xxx'
+```
+
+### View Connection Status in UI
+
+The web interface now shows real-time connection status:
+- ✅ **Green box**: Successfully connected with server/database details
+- ❌ **Red box**: Connection failed with error details and troubleshooting hints
+- Click **"🔄 Retry Connection"** button to test again after fixing issues
+
 ## License
 MIT
