@@ -5,6 +5,7 @@ import javax.sql.DataSource;
 import java.sql.*;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -70,6 +71,11 @@ public class SqlRunnerService {
         int successCount = latencies.size();
         int errorCount = iterations - successCount;
 
+        // Format timestamps
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
+        String startTime = formatter.format(start);
+        String finishTime = formatter.format(end);
+
         // stats
         Collections.sort(latencies);
         long avg = latencies.isEmpty() ? 0 : (long) latencies.stream().mapToLong(Long::longValue).average().orElse(0);
@@ -81,6 +87,8 @@ public class SqlRunnerService {
         res.setTotalIterations(iterations);
         res.setConcurrency(concurrency);
         res.setDurationMs(durationMs);
+        res.setStartTime(startTime);
+        res.setFinishTime(finishTime);
         res.setSuccessCount(successCount);
         res.setErrorCount(errorCount);
         res.setAvgMs(avg);

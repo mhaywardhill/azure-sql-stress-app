@@ -162,7 +162,23 @@
     </div>
 
     <div th:if="${result}">
-        <h2>Results</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2 style="margin: 0;">Results</h2>
+            <form th:action="@{/clearResults}" method="post" style="margin: 0;" th:object="${request}">
+                <input type="hidden" th:field="*{sqlText}" />
+                <input type="hidden" th:field="*{iterations}" />
+                <input type="hidden" th:field="*{concurrency}" />
+                <input type="hidden" th:field="*{delayMs}" />
+                <input type="hidden" th:field="*{timeoutSeconds}" />
+                <input type="hidden" th:field="*{resultMode}" />
+                <input type="hidden" th:field="*{maxRows}" />
+                <button type="submit" class="secondary" style="font-size: 0.9rem; padding: 0.5rem 1rem;">Clear Results</button>
+            </form>
+        </div>
+        <p>
+            Start: <strong th:text="${result.startTime}"></strong> ·
+            Finish: <strong th:text="${result.finishTime}"></strong>
+        </p>
         <p>
             Iterations: <strong th:text="${result.totalIterations}"></strong> ·
             Concurrency: <strong th:text="${result.concurrency}"></strong> ·

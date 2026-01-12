@@ -78,6 +78,14 @@ public class HomeController {
         return "index";
     }
 
+    @PostMapping("/clearResults")
+    public String clearResults(@ModelAttribute("request") StressRequest request, Model model) {
+        // Preserve the request form values, just don't add result to model
+        addConnectionInfo(model);
+        testConnection(model);
+        return "index";
+    }
+
     private void addConnectionInfo(Model model) {
         if (dataSource instanceof HikariDataSource) {
             HikariDataSource hikari = (HikariDataSource) dataSource;
