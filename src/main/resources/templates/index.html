@@ -9,6 +9,69 @@
 <div class="container">
     <h1>Azure SQL Stress App</h1>
     <p class="muted">Run a SQL statement multiple times with configurable concurrency and capture timings.</p>
+    
+    <!-- Connection Status -->
+    <div th:if="${connectionStatus}" style="margin-bottom: 1rem;">
+        <div th:if="${connectionSuccess}" style="background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 1rem; border-radius: 4px;">
+            <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem;">
+                <span th:text="${connectionStatus['status']}"></span>
+            </h3>
+            <p style="margin: 0.25rem 0; font-size: 0.9rem;">
+                <strong>Server:</strong> <span th:text="${serverName}"></span><br/>
+                <strong>Database:</strong> <span th:text="${databaseName}"></span><br/>
+                <strong>User:</strong> <span th:text="${username}"></span><br/>
+                <span th:if="${connectionStatus['product']}" th:text="'Product: ' + ${connectionStatus['product']}"></span>
+            </p>
+            <p style="margin: 0.25rem 0; font-size: 0.85rem; color: #666;">
+                Pool: <span th:text="${poolTotal}"></span> total, 
+                <span th:text="${poolActive}"></span> active, 
+                <span th:text="${poolIdle}"></span> idle, 
+                <span th:text="${poolWaiting}"></span> waiting
+            </p>
+        </div>
+        
+        <div th:if="${!connectionSuccess}" style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 1rem; border-radius: 4px;">
+            <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem;">
+                <span th:text="${connectionStatus['status']}"></span>
+            </h3>
+            <div style="font-size: 0.9rem;">
+                <p style="margin: 0.25rem 0;"><strong>Error:</strong> <span th:text="${connectionStatus['error']}"></span></p>
+                <p style="margin: 0.25rem 0; word-wrap: break-word;"><strong>Message:</strong> <span th:text="${connectionStatus['message']}"></span></p>
+                <p style="margin: 0.25rem 0;" th:if="${connectionStatus['sqlState']}">
+                    <strong>SQL State:</strong> <span th:text="${connectionStatus['sqlState']}"></span> | 
+                    <strong>Error Code:</strong> <span th:text="${connectionStatus['errorCode']}"></span>
+                </p>
+                
+                <div th:if="${connectionStatus['hint']}" style="margin-top: 0.75rem; padding: 0.5rem; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; color: #856404;">
+                    <strong>💡 Troubleshooting:</strong><br/>
+                    <span th:text="${connectionStatus['hint']}"></span>
+                </div>
+                
+                <div style="margin-top: 0.75rem; padding: 0.5rem; background: #e2e3e5; border-radius: 4px; font-size: 0.85rem;">
+                    <strong>Configuration:</strong><br/>
+                    <span th:if="${serverName}">Server: <span th:text="${serverName}"></span><br/></span>
+                    <span th:if="${databaseName}">Database: <span th:text="${databaseName}"></span><br/></span>
+                    <span th:if="${username}">User: <span th:text="${username}"></span><br/></span>
+                    <span th:if="${jdbcUrl}">JDBC URL: <code style="font-size: 0.8rem; word-break: break-all;" th:text="${jdbcUrl}"></code></span>
+                </div>
+                
+                <div style="margin-top: 0.75rem; font-size: 0.85rem;">
+                    <strong>Quick Checks:</strong>
+                    <ul style="margin: 0.25rem 0; padding-left: 1.5rem;">
+                        <li>Verify environment variables: <code>DB_URL</code>, <code>DB_USER</code>, <code>DB_PASSWORD</code></li>
+                        <li>Check Azure SQL firewall allows your IP address</li>
+                        <li>For Azure AD auth, ensure JDBC URL includes: <code>authentication=ActiveDirectoryPassword</code></li>
+                        <li>Test connectivity: <code>curl -v telnet://YOUR-SERVER.database.windows.net:1433</code></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <form th:action="@{/testConnection}" method="post" style="margin-top: 0.75rem;">
+                <button type="submit" class="secondary">🔄 Retry Connection</button>
+            </form>
+        </div>
+    </div>
+    
     <form th:action="@{/run}" th:object="${request}" method="post">
         <label>SQL statement</label>
         <textarea th:field="*{sqlText}" rows="6" placeholder="e.g., SELECT COUNT(*) FROM sys.objects"></textarea>
@@ -47,8 +110,75 @@
         <button type="submit">Run</button>
     </form>
 
+    <form th:action="@{/evict}" method="post" style="margin-top: 1rem;">
+        <button type="submit" class="secondary">Evict Idle Connections</button>
+    </form>
+
+    <form th:action="@{/updatePool}" method="post" style="margin-top: 1rem;">
+        <h3>Connection Pool Settings</h3>
+        <div class="grid">
+            <div>
+                <label>Minimum Idle</label>
+                <input type="number" name="minIdle" th:value="${currentMinIdle}" min="0" />
+            </div>
+            <div>
+                <label>Maximum Pool Size</label>
+                <input type="number" name="maxPool" th:value="${currentMaxPool}" min="1" />
+            </div>
+        </div>
+        
+        <h4 style="margin-top: 1rem; margin-bottom: 0.5rem;">Connection Management (ms)</h4>
+        <div class="grid">
+            <div>
+                <label>Connection Timeout</label>
+                <input type="number" name="connectionTimeout" th:value="${currentConnectionTimeout}" min="1000" step="1000" />
+                <small style="color: #666; font-size: 0.85rem;">Max wait for connection (default: 30000)</small>
+            </div>
+            <div>
+                <label>Idle Timeout</label>
+                <input type="number" name="idleTimeout" th:value="${currentIdleTimeout}" min="0" step="1000" />
+                <small style="color: #666; font-size: 0.85rem;">Max idle time (default: 600000, 0=disabled)</small>
+            </div>
+            <div>
+                <label>Max Lifetime</label>
+                <input type="number" name="maxLifetime" th:value="${currentMaxLifetime}" min="0" step="1000" />
+                <small style="color: #666; font-size: 0.85rem;">Max connection lifetime (default: 1800000, 0=unlimited)</small>
+            </div>
+            <div>
+                <label>Keepalive Time</label>
+                <input type="number" name="keepaliveTime" th:value="${currentKeepaliveTime}" min="0" step="1000" />
+                <small style="color: #666; font-size: 0.85rem;">Keepalive ping frequency (default: 0=disabled)</small>
+            </div>
+        </div>
+        <button type="submit" class="secondary">Update Pool Settings</button>
+    </form>
+
+    <div th:if="${evictMessage}" class="success-message">
+        <p th:text="${evictMessage}"></p>
+    </div>
+
+    <div th:if="${poolMessage}" class="success-message">
+        <p th:text="${poolMessage}"></p>
+    </div>
+
     <div th:if="${result}">
-        <h2>Results</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2 style="margin: 0;">Results</h2>
+            <form th:action="@{/clearResults}" method="post" style="margin: 0;" th:object="${request}">
+                <input type="hidden" th:field="*{sqlText}" />
+                <input type="hidden" th:field="*{iterations}" />
+                <input type="hidden" th:field="*{concurrency}" />
+                <input type="hidden" th:field="*{delayMs}" />
+                <input type="hidden" th:field="*{timeoutSeconds}" />
+                <input type="hidden" th:field="*{resultMode}" />
+                <input type="hidden" th:field="*{maxRows}" />
+                <button type="submit" class="secondary" style="font-size: 0.9rem; padding: 0.5rem 1rem;">Clear Results</button>
+            </form>
+        </div>
+        <p>
+            Start: <strong th:text="${result.startTime}"></strong> ·
+            Finish: <strong th:text="${result.finishTime}"></strong>
+        </p>
         <p>
             Iterations: <strong th:text="${result.totalIterations}"></strong> ·
             Concurrency: <strong th:text="${result.concurrency}"></strong> ·
@@ -65,14 +195,14 @@
             p99: <strong th:text="${result.p99Ms}"></strong> ms
         </p>
 
-        <div th:if="${result.errorSamples} != null and !${result.errorSamples}.isEmpty()">
+        <div th:if="${result.errorSamples != null and !result.errorSamples.isEmpty()}">
             <h3>Error samples</h3>
             <ul>
                 <li th:each="e : ${result.errorSamples}" th:text="${e}"></li>
             </ul>
         </div>
 
-        <div th:if="${result.sampleRows} != null and !${result.sampleRows}.isEmpty()">
+        <div th:if="${result.sampleRows != null and !result.sampleRows.isEmpty()}">
             <h3>Sample rows</h3>
             <table>
                 <tbody>

@@ -6,6 +6,8 @@ public class StressResult {
     private int totalIterations;
     private int concurrency;
     private long durationMs;
+    private String startTime;
+    private String finishTime;
     private int successCount;
     private int errorCount;
     private long avgMs;
@@ -23,6 +25,12 @@ public class StressResult {
 
     public long getDurationMs() { return durationMs; }
     public void setDurationMs(long durationMs) { this.durationMs = durationMs; }
+
+    public String getStartTime() { return startTime; }
+    public void setStartTime(String startTime) { this.startTime = startTime; }
+
+    public String getFinishTime() { return finishTime; }
+    public void setFinishTime(String finishTime) { this.finishTime = finishTime; }
 
     public int getSuccessCount() { return successCount; }
     public void setSuccessCount(int successCount) { this.successCount = successCount; }

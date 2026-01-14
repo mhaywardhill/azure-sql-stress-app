@@ -1,9 +1,11 @@
 package com.example.sqlstresstool.service;
 
+import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -69,6 +71,11 @@ public class SqlRunnerService {
         int successCount = latencies.size();
         int errorCount = iterations - successCount;
 
+        // Format timestamps
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
+        String startTime = formatter.format(start);
+        String finishTime = formatter.format(end);
+
         // stats
         Collections.sort(latencies);
         long avg = latencies.isEmpty() ? 0 : (long) latencies.stream().mapToLong(Long::longValue).average().orElse(0);
@@ -80,6 +87,8 @@ public class SqlRunnerService {
         res.setTotalIterations(iterations);
         res.setConcurrency(concurrency);
         res.setDurationMs(durationMs);
+        res.setStartTime(startTime);
+        res.setFinishTime(finishTime);
         res.setSuccessCount(successCount);
         res.setErrorCount(errorCount);
         res.setAvgMs(avg);
@@ -152,5 +161,55 @@ public class SqlRunnerService {
         if (sql == null) return false;
         String s = sql.trim().toLowerCase(Locale.ROOT);
         return s.startsWith("select") || s.startsWith("with ");
+    }
+
+    public String evictIdleConnections() {
+        if (dataSource instanceof HikariDataSource) {
+            HikariDataSource hikari = (HikariDataSource) dataSource;
+            hikari.getHikariPoolMXBean().softEvictConnections();
+            return "Idle connections evicted from pool '" + hikari.getPoolName() + "'";
+        }
+        return "DataSource is not HikariCP, cannot evict connections";
+    }
+
+    public String updatePoolSettings(Integer minIdle, Integer maxPool, Long connectionTimeout,
+                                    Long idleTimeout, Long maxLifetime, Long keepaliveTime) {
+        if (dataSource instanceof HikariDataSource) {
+            HikariDataSource hikari = (HikariDataSource) dataSource;
+            StringBuilder message = new StringBuilder("Pool settings updated: ");
+            
+            if (minIdle != null && minIdle >= 0) {
+                hikari.setMinimumIdle(minIdle);
+                message.append("Min Idle=").append(minIdle).append(" ");
+            }
+            
+            if (maxPool != null && maxPool > 0) {
+                hikari.setMaximumPoolSize(maxPool);
+                message.append("Max Pool=").append(maxPool).append(" ");
+            }
+            
+            if (connectionTimeout != null && connectionTimeout >= 1000) {
+                hikari.setConnectionTimeout(connectionTimeout);
+                message.append("Conn Timeout=").append(connectionTimeout).append("ms ");
+            }
+            
+            if (idleTimeout != null && idleTimeout >= 0) {
+                hikari.setIdleTimeout(idleTimeout);
+                message.append("Idle Timeout=").append(idleTimeout).append("ms ");
+            }
+            
+            if (maxLifetime != null && maxLifetime >= 0) {
+                hikari.setMaxLifetime(maxLifetime);
+                message.append("Max Lifetime=").append(maxLifetime).append("ms ");
+            }
+            
+            if (keepaliveTime != null && keepaliveTime >= 0) {
+                hikari.setKeepaliveTime(keepaliveTime);
+                message.append("Keepalive=").append(keepaliveTime).append("ms");
+            }
+            
+            return message.toString();
+        }
+        return "DataSource is not HikariCP, cannot update pool settings";
     }
 }
