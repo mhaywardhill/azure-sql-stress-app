@@ -12,6 +12,18 @@ A lightweight Spring Boot web app to **stress test Azure SQL** by repeatedly exe
 - **Configurable Hikari connection pool settings** via environment variables (pool size, timeouts, etc.)
 - Ready to run in **GitHub Codespaces** or **Linux VM**
 
+## Screenshots
+
+### Application Startup
+Shows the web interface on startup with connection status indicator:
+
+![Application Startup](screenshots/app_startup_screenshot.png)
+
+### Results View
+Example of test results showing metrics, latency percentiles, and sample data:
+
+![Application Results](screenshots/app_results_screenshot.png)
+
 ## Quick Start (GitHub Codespaces)
 1. **Create a new GitHub repository** and add these files (or push this folder). If you’re viewing this locally, push it:
    ```bash
